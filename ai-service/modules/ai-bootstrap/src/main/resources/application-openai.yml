@@ -1,0 +1,9 @@
+# Profile "openai": Enable OpenAI models (chat and embedding).
+# Use with "dev,openai" to enable OpenAI while keeping dev database config.
+spring:
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+    model:
+      chat: openai
+      embedding: openai

@@ -1,0 +1,20 @@
+# Architecture Decision Records (ADRs)
+
+Este directorio contiene los Architecture Decision Records del proyecto.
+
+## ¿Qué es un ADR?
+
+Un ADR es un documento que captura una decisión arquitectónica importante junto con su contexto y consecuencias.
+
+## Formato
+
+Cada ADR debe seguir el formato:
+- **Título**: ADR-XXX-Título-corto
+- **Estado**: Propuesto | Aceptado | Rechazado | Deprecado
+- **Contexto**: Situación que requiere una decisión
+- **Decisión**: Decisión tomada
+- **Consecuencias**: Impacto positivo y negativo
+
+## Ejemplo
+
+Ver: `ADR-001-Ejemplo.md`

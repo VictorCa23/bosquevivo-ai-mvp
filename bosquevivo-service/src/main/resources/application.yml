@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: bosquevivo-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${BOSQUEVIVO_DB_URL:jdbc:postgresql://${BOSQUEVIVO_DB_HOST:127.0.0.1}:${BOSQUEVIVO_DB_PORT:5435}/${BOSQUEVIVO_DB_NAME:bosquevivo}}
+    username: ${BOSQUEVIVO_DB_USER:postgres}
+    password: ${BOSQUEVIVO_DB_PASSWORD:postgres}
+    hikari:
+      pool-name: bosquevivo-hikari
+      maximum-pool-size: ${BOSQUEVIVO_DB_POOL_MAX:10}
+      minimum-idle: ${BOSQUEVIVO_DB_POOL_MIN_IDLE:2}
+      initialization-fail-timeout: ${BOSQUEVIVO_DB_INIT_FAIL_TIMEOUT_MS:0}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: ${BOSQUEVIVO_FLYWAY_ENABLED:true}
+
+server:
+  port: ${BOSQUEVIVO_SERVICE_PORT:8082}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: false
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8090,http://127.0.0.1:8090}
+
+security:
+  jwt:
+    secret: ${BOSQUEVIVO_JWT_SECRET:dev-only-change-this-secret-32-bytes}
+    expiration-minutes: ${BOSQUEVIVO_JWT_EXPIRATION_MINUTES:480}
+
+bosquevivo:
+  ai-service:
+    enabled: ${BOSQUEVIVO_AI_ENABLED:false}
+    base-url: ${BOSQUEVIVO_AI_BASE_URL:http://localhost:8091}
+    connect-timeout-ms: ${BOSQUEVIVO_AI_CONNECT_TIMEOUT_MS:1000}
+    read-timeout-ms: ${BOSQUEVIVO_AI_READ_TIMEOUT_MS:2000}

@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: ai-service
+
+  profiles:
+    default: dev
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${AI_DB_URL:${DB_URL:jdbc:postgresql://localhost:${AI_DB_PORT:${DB_PORT:5434}}/${AI_DB_NAME:${DB_NAME:ai_service}}}}
+    username: ${AI_DB_USER:${DB_USER:postgres}}
+    password: ${AI_DB_PASSWORD:${DB_PASS:postgres}}
+    hikari:
+      pool-name: ai-service-hikari
+      maximum-pool-size: ${AI_DB_POOL_MAX:${DB_POOL_MAX:10}}
+      minimum-idle: ${AI_DB_POOL_MIN_IDLE:${DB_POOL_MIN_IDLE:2}}
+      connection-timeout: ${AI_DB_CONN_TIMEOUT_MS:${DB_CONN_TIMEOUT_MS:10000}}
+      validation-timeout: ${AI_DB_VALIDATION_TIMEOUT_MS:${DB_VALID_TIMEOUT_MS:3000}}
+      idle-timeout: ${AI_DB_IDLE_TIMEOUT_MS:${DB_IDLE_TIMEOUT_MS:600000}}
+      max-lifetime: ${AI_DB_MAX_LIFETIME_MS:${DB_MAX_LIFETIME_MS:1800000}}
+      initialization-fail-timeout: 0
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+    vectorstore:
+      pgvector:
+        initialize-schema: ${PGVECTOR_INIT_SCHEMA:true}
+        index-type: ${PGVECTOR_INDEX_TYPE:HNSW}
+        distance-type: ${PGVECTOR_DISTANCE:COSINE_DISTANCE}
+
+server:
+  port: ${AI_SERVICE_PORT:8091}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:true}
+  swagger-ui:
+    enabled: false
+
+security:
+  jwt:
+    enabled: ${JWT_ENABLED:false}
+
+logging:
+  level:
+    root: INFO
+    com.solveria: INFO
+  file:
+    name: ${LOG_FILE:${user.dir}/.runtime/logs/ai-service.log}

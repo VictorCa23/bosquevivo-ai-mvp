@@ -1,0 +1,40 @@
+# Profile "test": Disable Spring AI model autoconfiguration to allow running with stubs
+# This allows the server to start without OpenAI API key and external dependencies
+spring:
+  ai:
+    model:
+      chat: none
+      embedding: none
+      audio:
+        speech: none
+        transcription: none
+      image: none
+      moderation: none
+    vectorstore:
+      type: none
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongodb.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongodb.MongoRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-components: always
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    defaults:
+      enabled: false
+    ping:
+      enabled: true

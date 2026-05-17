@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: iam-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${IAM_DB_URL:jdbc:postgresql://${IAM_DB_HOST:127.0.0.1}:${IAM_DB_PORT:5433}/${IAM_DB_NAME:iam_service}}
+    username: ${IAM_DB_USER:postgres}
+    password: ${IAM_DB_PASSWORD:postgres}
+    hikari:
+      pool-name: iam-service-hikari
+      maximum-pool-size: ${IAM_DB_POOL_MAX:10}
+      minimum-idle: ${IAM_DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${IAM_DB_CONN_TIMEOUT_MS:10000}
+      validation-timeout: ${IAM_DB_VALIDATION_TIMEOUT_MS:3000}
+      initialization-fail-timeout: ${IAM_DB_INIT_FAIL_TIMEOUT_MS:0}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+  flyway:
+    enabled: ${IAM_FLYWAY_ENABLED:true}
+
+# JWT Security Configuration
+security:
+  jwt:
+    enabled: ${IAM_JWT_ENABLED:false}  # Default: disabled for DEV mode
+    secret: ${IAM_JWT_SECRET:dev-only-change-this-secret-32-bytes}
+    expiration-minutes: ${IAM_JWT_EXPIRATION_MINUTES:480}
+
+server:
+  port: ${IAM_SERVICE_PORT:8089}
+
+# Actuator Configuration
+management:
+  health:
+    mongo:
+      enabled: false
+    redis:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: false
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://localhost:8089,http://127.0.0.1:8089}

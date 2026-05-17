@@ -1,0 +1,19 @@
+# H2 in-memory for tests (Surefire uses profile 'test' via systemPropertyVariables)
+spring:
+  datasource:
+    url: jdbc:h2:mem:iam_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: never
+
+# Avoid PathPattern "No more pattern data after **" in SpringDoc resource handlers
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

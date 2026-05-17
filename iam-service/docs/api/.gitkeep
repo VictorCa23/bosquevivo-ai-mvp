@@ -1,0 +1,16 @@
+# API Documentation
+
+Este directorio contiene documentación adicional de la API REST.
+
+## Contenido
+
+- Especificaciones OpenAPI (si se exportan como archivos)
+- Ejemplos de integración
+- Guías de uso de endpoints
+- Diagramas de flujo de la API
+
+## Nota
+
+La documentación principal de la API está disponible en Swagger UI cuando el servicio está corriendo:
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs

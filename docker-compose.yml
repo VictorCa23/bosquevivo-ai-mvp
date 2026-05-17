@@ -1,0 +1,167 @@
+name: bosquevivo-mvp
+
+services:
+  bosquevivo-db:
+    image: postgres:16
+    container_name: bosquevivo-db
+    restart: unless-stopped
+    ports:
+      - "${BOSQUEVIVO_DB_BIND_HOST:-127.0.0.1}:${BOSQUEVIVO_DB_PORT:-5435}:5432"
+    environment:
+      POSTGRES_DB: ${BOSQUEVIVO_DB_NAME:-bosquevivo}
+      POSTGRES_USER: ${BOSQUEVIVO_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${BOSQUEVIVO_DB_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - bosquevivo_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  iam-db:
+    image: postgres:16
+    container_name: bosquevivo-iam-db
+    restart: unless-stopped
+    ports:
+      - "${IAM_DB_BIND_HOST:-127.0.0.1}:${IAM_DB_PORT:-5436}:5432"
+    environment:
+      POSTGRES_DB: ${IAM_DB_NAME:-iam_service}
+      POSTGRES_USER: ${IAM_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${IAM_DB_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - iam_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost -p 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  iam-service:
+    build:
+      context: .
+      dockerfile: iam-service/Dockerfile
+    container_name: bosquevivo-iam-service
+    restart: unless-stopped
+    depends_on:
+      iam-db:
+        condition: service_healthy
+    ports:
+      - "${IAM_SERVICE_PORT:-8089}:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      IAM_SERVICE_PORT: 8089
+      IAM_DB_HOST: iam-db
+      IAM_DB_PORT: 5432
+      IAM_DB_NAME: ${IAM_DB_NAME:-iam_service}
+      IAM_DB_USER: ${IAM_DB_USER:-postgres}
+      IAM_DB_PASSWORD: ${IAM_DB_PASSWORD:-postgres}
+      IAM_FLYWAY_ENABLED: ${IAM_FLYWAY_ENABLED:-true}
+      IAM_JWT_ENABLED: "false"
+      IAM_JWT_SECRET: ${BOSQUEVIVO_JWT_SECRET:-dev-only-change-this-secret-32-bytes}
+      IAM_JWT_EXPIRATION_MINUTES: ${BOSQUEVIVO_JWT_EXPIRATION_MINUTES:-480}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8090,http://127.0.0.1:8090}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8089/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  bosquevivo-api:
+    build:
+      context: .
+      dockerfile: bosquevivo-service/Dockerfile
+    container_name: bosquevivo-api
+    restart: unless-stopped
+    depends_on:
+      bosquevivo-db:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+      iam-service:
+        condition: service_healthy
+    ports:
+      - "${BOSQUEVIVO_SERVICE_PORT:-8082}:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      BOSQUEVIVO_SERVICE_PORT: 8082
+      BOSQUEVIVO_DB_HOST: bosquevivo-db
+      BOSQUEVIVO_DB_PORT: 5432
+      BOSQUEVIVO_DB_NAME: ${BOSQUEVIVO_DB_NAME:-bosquevivo}
+      BOSQUEVIVO_DB_USER: ${BOSQUEVIVO_DB_USER:-postgres}
+      BOSQUEVIVO_DB_PASSWORD: ${BOSQUEVIVO_DB_PASSWORD:-postgres}
+      BOSQUEVIVO_FLYWAY_ENABLED: ${BOSQUEVIVO_FLYWAY_ENABLED:-true}
+      BOSQUEVIVO_JWT_SECRET: ${BOSQUEVIVO_JWT_SECRET:-dev-only-change-this-secret-32-bytes}
+      BOSQUEVIVO_JWT_EXPIRATION_MINUTES: ${BOSQUEVIVO_JWT_EXPIRATION_MINUTES:-480}
+      BOSQUEVIVO_AI_ENABLED: ${BOSQUEVIVO_AI_ENABLED:-true}
+      BOSQUEVIVO_AI_BASE_URL: http://ai-service:8091
+      BOSQUEVIVO_AI_CONNECT_TIMEOUT_MS: ${BOSQUEVIVO_AI_CONNECT_TIMEOUT_MS:-1000}
+      BOSQUEVIVO_AI_READ_TIMEOUT_MS: ${BOSQUEVIVO_AI_READ_TIMEOUT_MS:-2000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8090,http://127.0.0.1:8090}
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: ai-service/Dockerfile
+    container_name: bosquevivo-ai-service
+    restart: unless-stopped
+    depends_on:
+      bosquevivo-db:
+        condition: service_healthy
+    ports:
+      - "${AI_SERVICE_PORT:-8092}:8091"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      AI_SERVICE_PORT: 8091
+      AI_DB_HOST: bosquevivo-db
+      AI_DB_PORT: 5432
+      AI_DB_NAME: ${BOSQUEVIVO_DB_NAME:-bosquevivo}
+      AI_DB_USER: ${BOSQUEVIVO_DB_USER:-postgres}
+      AI_DB_PASSWORD: ${BOSQUEVIVO_DB_PASSWORD:-postgres}
+      JWT_ENABLED: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8091/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  bosquevivo-web:
+    build:
+      context: .
+      dockerfile: bosquevivo-web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:${BOSQUEVIVO_SERVICE_PORT:-8082}
+        VITE_IAM_URL: http://localhost:${IAM_SERVICE_PORT:-8089}
+    container_name: bosquevivo-web
+    restart: unless-stopped
+    depends_on:
+      - bosquevivo-api
+    ports:
+      - "${BOSQUEVIVO_WEB_PORT:-3000}:80"
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.18.2
+    container_name: bosquevivo-swagger-ui
+    restart: unless-stopped
+    depends_on:
+      - bosquevivo-api
+    ports:
+      - "${SWAGGER_UI_PORT:-8090}:8080"
+    environment:
+      URLS: >-
+        [
+          { "name": "BosqueVivo API", "url": "http://localhost:${BOSQUEVIVO_SERVICE_PORT:-8082}/v3/api-docs" },
+          { "name": "IAM Service", "url": "http://localhost:${IAM_SERVICE_PORT:-8089}/v3/api-docs" },
+          { "name": "AI Service", "url": "http://localhost:${AI_SERVICE_PORT:-8092}/v3/api-docs" }
+        ]
+      URLS_PRIMARY_NAME: BosqueVivo API
+
+volumes:
+  bosquevivo_db_data:
+  iam_db_data:

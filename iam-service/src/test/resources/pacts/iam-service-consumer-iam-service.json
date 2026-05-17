@@ -1,0 +1,44 @@
+{
+  "consumer": {
+    "name": "iam-service-consumer"
+  },
+  "provider": {
+    "name": "iam-service"
+  },
+  "interactions": [
+    {
+      "description": "assign permissions to role",
+      "providerState": "role exists and permissions can be assigned",
+      "request": {
+        "method": "PUT",
+        "path": "/api/v1/iam/roles/1/permissions",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "permissionIds": [1, 2, 3]
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "id": 1,
+          "name": "ADMIN",
+          "description": "Administrator role",
+          "permissionIds": [1, 2, 3]
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "pact-jvm": {
+      "version": "4.0.0"
+    }
+  }
+}

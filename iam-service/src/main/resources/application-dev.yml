@@ -1,0 +1,22 @@
+# JWT Security Configuration (DEV mode: disabled by default)
+security:
+  jwt:
+    enabled: false
+
+# Actuator Configuration (DEV: expose more endpoints)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration (DEV: more verbose)
+logging:
+  level:
+    root: INFO
+    com.solveria: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
