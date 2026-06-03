@@ -32,6 +32,8 @@ import {
   type UserRole,
 } from "./services/incidents";
 import "./styles.css";
+import { ChatBot } from "./components/ChatBot";
+
 
 const incidentTypes: Array<{ value: IncidentType; label: string }> = [
   { value: "FIRE", label: "Fuego" },
@@ -803,6 +805,7 @@ function App() {
           />
         </section>
       </section>
+      <ChatBot />
     </main>
   );
 }

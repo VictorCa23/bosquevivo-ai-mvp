@@ -3,7 +3,10 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY bosquevivo-web/package*.json ./
 RUN npm ci
-COPY bosquevivo-web ./
+COPY bosquevivo-web/src ./src
+COPY bosquevivo-web/index.html ./
+COPY bosquevivo-web/tsconfig*.json ./
+COPY bosquevivo-web/vite.config.* ./
 ARG VITE_API_URL=http://localhost:8082
 ARG VITE_IAM_URL=http://localhost:8089
 ENV VITE_API_URL=$VITE_API_URL
