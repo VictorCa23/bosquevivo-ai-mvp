@@ -43,16 +43,39 @@ Incluye el flujo operativo principal de incidentes:
 - Exponer OpenAPI de `bosquevivo-service`, `iam-service` y `ai-service` en Swagger UI.
 - Levantar API, frontend, `iam-service`, `ai-service` y PostgreSQL con Docker Compose.
 - Usar una integracion limpia: IAM autentica, BosqueVivo API opera el dominio,
+- Preguntar en lenguaje natural sobre el estado de los incidentes a través de un asistente de chat.
+- Dictar preguntas por micrófono en vez de escribir (reconocimiento de voz del navegador).
+- Escuchar las respuestas del asistente convertidas a voz con Kokoro TTS (self-hosted).
   AI Service analiza incidentes y Core Platform aporta componentes compartidos.
 
 No incluye todavia: IA generativa real, usuarios persistidos en IAM, multi-tenant real, auditoria avanzada, app movil,
 MongoDB, Redis, dashboards avanzados ni mapas operativos complejos.
 
+## Sobre el asistente de chat
+
+El asistente que aparece en la esquina del panel responde preguntas sobre los
+incidentes (cuántos hay, cuántos están cerrados, cuántos son críticos, etc.).
+Para ser honesto sobre cómo funciona: **no es un LLM todavía** — es lógica de
+palabras clave (`ChatController.java`) que arma respuestas con plantillas de
+texto a partir de las estadísticas reales del sistema. Funciona bien para lo
+que hace, pero no entiende lenguaje natural más allá de esas palabras clave.
+
+Sí está preparada la infraestructura para el siguiente paso: `ai-service` ya
+tiene configurado Spring AI con OpenAI y `pgvector` como vector store (ver
+`application-openai.yml`), listo para conectar búsqueda semántica real sobre
+los incidentes. Es el próximo paso natural del proyecto.
+
+El reconocimiento de voz usa la Web Speech API del navegador (gratis, sin API
+key, corre en Chrome). La respuesta se convierte a audio con **Kokoro TTS
+corriendo en un contenedor local** (`VITE_KOKORO_URL`, por defecto
+`localhost:8880`) — no es un servicio externo de pago.
+
 ## Stack
 
 - Backend: Java 21, Spring Boot 3.4.0, Maven.
 - IAM Service: Java 21, Spring Boot 3.4.0, Maven.
-- AI Service: Java 21, Spring Boot 3.4.0, Maven multi-modulo.
+- AI Service: Java 21, Spring Boot 3.4.0, Maven multi-modulo, Spring AI + OpenAI + pgvector (vector store preparado para busqueda semantica).
+- Voz: Web Speech API (reconocimiento) + Kokoro TTS self-hosted (texto a voz).
 - Core Platform: libreria Maven `com.solveria:core-platform`.
 - Frontend: React, Vite, TypeScript, Leaflet.
 - Base de datos: PostgreSQL 16.
